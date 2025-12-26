@@ -1,34 +1,20 @@
-CEG Türkiye ofisi tarafından tasarlanan "İnşaat Hesap Makinesi"
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-Telefonlarınızda, Tabletlerinizde ve Bilgisayarınızda rahatlıkla kullanabilirsiniz.
+# Run and deploy your AI Studio app
 
-Klavye desteği bulunmaktadır.
+This contains everything you need to run your app locally.
 
-Rakamlar (0-9): Ekrana sayı girer.
+View your app in AI Studio: https://ai.studio/apps/drive/11QFRoTesCFRpvZ56crUaXULIrNxib0My
 
-Nokta (.) veya Virgül (,): Ondalık sayı girer.
+## Run Locally
 
-Enter veya Eşittir (=): Sonucu hesaplar.
+**Prerequisites:**  Node.js
 
-Backspace (Silme): Son karakteri siler.
 
-Escape (ESC) veya Delete: Ekranı temizler (Clear).
-
-*İşlem Tuşları (+, -, ): Toplama, çıkarma ve çarpma işlemlerini yapar.
-
-Bölme Tuşları:
-
-Klavyedeki / (Slash) tuşu: Kesir çizgisi oluşturur (Örn: 1/2 yazmak için).
-
-Numpad üzerindeki / (NumpadDivide) tuşu: Bölme işlemi (÷) yapar. (Eğer laptop kullanıyorsanız ve numpad yoksa bölme işlemi için ekrandaki tuşu kullanabilirsiniz, ancak harf klavyesindeki / kesir yapacaktır).
-
-Kısayollar:
-
-F: Feet
-
-I: Inch
-
-Y: Yard
-
-C: Conv (Dönüştürme modu)
-
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

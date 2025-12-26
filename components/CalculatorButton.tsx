@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ButtonType } from '../types';
 
@@ -17,7 +18,9 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
   cols = 1
 }) => {
   
-  const baseClasses = "h-14 font-bold rounded-lg shadow-btn active:shadow-btn-active active:scale-95 transition-all flex items-center justify-center select-none";
+  // Changed h-14 to h-full to allow grid to control height
+  // Changed rounded-lg to rounded-2xl for better aesthetics on taller buttons
+  const baseClasses = "h-full w-full font-bold rounded-2xl shadow-btn active:shadow-btn-active active:scale-95 transition-all flex items-center justify-center select-none";
   
   let typeClasses = "";
   let textClasses = "text-xl";
@@ -44,12 +47,10 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
 
   if (type === ButtonType.Memory) {
      return (
-        <div className={`col-span-${cols} ${baseClasses} ${typeClasses} ${className}`}>
-             {/* 
-               NOTE: For full 100% offline support without relying on browser cache, 
-               convert your image to a Base64 string and paste it in the src below.
-               Example: src="data:image/png;base64,iVBORw0KGgo..."
-             */}
+        <div 
+          className={`col-span-${cols} ${baseClasses} ${typeClasses} ${className}`}
+          style={{ gridColumn: cols > 1 ? `span ${cols} / span ${cols}` : undefined }}
+        >
              <img 
                 src="https://i.hizliresim.com/9j58288.png"
                 alt="CEG"

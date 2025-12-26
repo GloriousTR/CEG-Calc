@@ -327,16 +327,16 @@ export default function App() {
       
       {/* 
         Main Container 
-        Mobile: Full width/height (w-full h-full), no rounded corners initially.
+        Mobile: Full width/height (w-full h-full), no rounded corners.
         Desktop (md): Rounded corners, Fixed aspect ratio or size, Flex Row (Left Display, Right Keypad).
       */}
-      <div className="w-full h-full sm:h-auto sm:max-h-[900px] sm:max-w-md md:max-w-5xl md:max-h-[600px] bg-white dark:bg-[#1C2024] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border-0 sm:border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      <div className="w-full h-full sm:h-auto sm:max-h-[900px] sm:max-w-md md:max-w-7xl md:max-h-[1000px] bg-white dark:bg-[#1C2024] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border-0 sm:border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         
         {/* --- LEFT SECTION (Display) --- */}
-        {/* On Mobile: Top part. On Desktop: Left part. */}
-        <div className="flex-1 flex flex-col p-6 md:p-8 md:w-[55%] z-10 relative bg-white dark:bg-[#1C2024] transition-colors duration-300">
+        {/* Mobile: Top 45% height. Desktop: Left 45% width. */}
+        <div className="h-[45%] min-h-[180px] md:h-auto md:w-[45%] flex-none md:flex-1 flex flex-col p-6 pt-8 md:p-8 z-10 relative bg-white dark:bg-[#1C2024] transition-colors duration-300">
             {/* Header: Title + Theme Toggle */}
-            <div className="flex justify-between items-center mb-2 md:mb-6">
+            <div className="flex justify-between items-center mb-1 md:mb-6">
                  <div className="text-xl font-bold text-gray-400 dark:text-gray-500 tracking-wide">
                     CEG Calc
                  </div>
@@ -353,47 +353,50 @@ export default function App() {
             </div>
 
             {/* Display Component */}
-            <div className="flex-1 flex flex-col justify-end md:justify-center">
+            <div className="flex-1 flex flex-col justify-end md:justify-center overflow-hidden">
                 <Display value={displayData} onBackspace={handleBackspace} />
             </div>
         </div>
 
         {/* --- RIGHT SECTION (Keypad) --- */}
-        {/* On Mobile: Bottom part. On Desktop: Right part. */}
-        <div className="bg-gray-50 dark:bg-[#16181b] md:bg-transparent md:dark:bg-transparent px-4 pb-6 pt-4 md:p-8 md:w-[45%] flex flex-col justify-end md:justify-center border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800">
-            <div className="grid grid-cols-4 gap-3 md:gap-4 max-w-sm mx-auto md:max-w-none w-full">
-              <CalculatorButton label="Conv" type={state.isConversionMode ? ButtonType.Accent : ButtonType.Primary} onClick={handleConv} />
-              <CalculatorButton label="Yard" type={ButtonType.Primary} onClick={() => handleUnit('yard')} />
-              <CalculatorButton label="Feet" type={ButtonType.Primary} onClick={() => handleUnit('feet')} />
-              <CalculatorButton label="Inch" type={ButtonType.Primary} onClick={() => handleUnit('inch')} />
-              
-              <CalculatorButton label="Clear" type={ButtonType.Primary} onClick={handleClear} />
-              <CalculatorButton label={`MEM`} type={ButtonType.Memory} cols={2} onClick={() => {}} />
-              <CalculatorButton label="/" type={ButtonType.Primary} onClick={handleFractionSlash} className="font-mono text-xl" />
-              
-              <CalculatorButton label="÷" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Divide)} className="text-2xl" />
-              <CalculatorButton label="7" onClick={() => handleNumber('7')} />
-              <CalculatorButton label="8" onClick={() => handleNumber('8')} />
-              <CalculatorButton label="9" onClick={() => handleNumber('9')} />
-              
-              <CalculatorButton label="×" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Multiply)} className="text-2xl" />
-              <CalculatorButton label="4" onClick={() => handleNumber('4')} />
-              <CalculatorButton label="5" onClick={() => handleNumber('5')} />
-              <CalculatorButton label="6" onClick={() => handleNumber('6')} />
-              
-              <CalculatorButton label="−" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Subtract)} className="text-2xl" />
-              <CalculatorButton label="1" onClick={() => handleNumber('1')} />
-              <CalculatorButton label="2" onClick={() => handleNumber('2')} />
-              <CalculatorButton label="3" onClick={() => handleNumber('3')} />
-              
-              <CalculatorButton label="+" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Add)} className="text-2xl" />
-              <CalculatorButton label="." type={ButtonType.Neutral} onClick={handleDecimal} className="text-2xl pb-2" />
-              <CalculatorButton label="0" onClick={() => handleNumber('0')} />
-              <CalculatorButton label="=" type={ButtonType.Accent} onClick={handleEqual} className="text-2xl" />
+        {/* Mobile: Bottom 55% height. Desktop: Right 55% width. */}
+        <div className="h-[55%] md:h-auto md:w-[55%] flex-none md:flex-1 bg-gray-50 dark:bg-[#16181b] md:bg-transparent md:dark:bg-transparent px-3 pb-4 pt-2 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800">
+            {/* Grid Container - Fills available height on mobile */}
+            <div className="flex-1 w-full">
+                <div className="grid grid-cols-4 grid-rows-6 gap-2 md:gap-4 w-full h-full max-w-sm mx-auto md:max-w-none">
+                <CalculatorButton label="Conv" type={state.isConversionMode ? ButtonType.Accent : ButtonType.Primary} onClick={handleConv} />
+                <CalculatorButton label="Yard" type={ButtonType.Primary} onClick={() => handleUnit('yard')} />
+                <CalculatorButton label="Feet" type={ButtonType.Primary} onClick={() => handleUnit('feet')} />
+                <CalculatorButton label="Inch" type={ButtonType.Primary} onClick={() => handleUnit('inch')} />
+                
+                <CalculatorButton label="Clear" type={ButtonType.Primary} onClick={handleClear} />
+                <CalculatorButton label={`MEM`} type={ButtonType.Memory} cols={2} onClick={() => {}} />
+                <CalculatorButton label="/" type={ButtonType.Primary} onClick={handleFractionSlash} className="font-mono text-xl" />
+                
+                <CalculatorButton label="÷" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Divide)} className="text-2xl" />
+                <CalculatorButton label="7" onClick={() => handleNumber('7')} className="text-3xl" />
+                <CalculatorButton label="8" onClick={() => handleNumber('8')} className="text-3xl" />
+                <CalculatorButton label="9" onClick={() => handleNumber('9')} className="text-3xl" />
+                
+                <CalculatorButton label="×" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Multiply)} className="text-2xl" />
+                <CalculatorButton label="4" onClick={() => handleNumber('4')} className="text-3xl" />
+                <CalculatorButton label="5" onClick={() => handleNumber('5')} className="text-3xl" />
+                <CalculatorButton label="6" onClick={() => handleNumber('6')} className="text-3xl" />
+                
+                <CalculatorButton label="−" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Subtract)} className="text-2xl" />
+                <CalculatorButton label="1" onClick={() => handleNumber('1')} className="text-3xl" />
+                <CalculatorButton label="2" onClick={() => handleNumber('2')} className="text-3xl" />
+                <CalculatorButton label="3" onClick={() => handleNumber('3')} className="text-3xl" />
+                
+                <CalculatorButton label="+" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Add)} className="text-2xl" />
+                <CalculatorButton label="." type={ButtonType.Neutral} onClick={handleDecimal} className="text-3xl pb-2" />
+                <CalculatorButton label="0" onClick={() => handleNumber('0')} className="text-3xl" />
+                <CalculatorButton label="=" type={ButtonType.Accent} onClick={handleEqual} className="text-3xl" />
+                </div>
             </div>
 
             {/* Home Indicator (Mobile Only) */}
-            <div className="md:hidden h-1 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mt-6 opacity-50"></div>
+            <div className="md:hidden h-1 w-1/3 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mt-2 shrink-0 opacity-50"></div>
         </div>
 
       </div>
