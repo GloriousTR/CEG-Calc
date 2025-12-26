@@ -112,6 +112,15 @@ export default function App() {
              // and set it as the current displayValue so the conversion has something to work on.
              // If no new input, we use the existing displayValue (calculated result).
              const hasNewInput = prev.builder.feet !== null || prev.builder.inch !== null || prev.builder.yard !== null || prev.builder.numerator !== null || prev.inputBuffer !== '';
+             
+             // CAPTURE THE SOURCE DIMENSION
+             // If we are building a number (e.g. 7 Cu Yd), use builder.dimension (3).
+             // If we are converting a calculated result, use activeDimension.
+             const sourceDimension = hasNewInput ? prev.builder.dimension : prev.activeDimension;
+             
+             // CAPTURE SOURCE UNITLESS STATE
+             const sourceUnitless = hasNewInput ? isBuilderUnitless(prev.builder) : prev.isUnitless;
+
              const valueToConvert = hasNewInput 
                 ? convertBuilderToDecimal(prev.builder, prev.inputBuffer) 
                 : prev.displayValue;
@@ -120,10 +129,12 @@ export default function App() {
                 ...prev,
                 isConversionMode: false,
                 convertedUnit: unit,
-                convertedDimension: 1, // Reset to linear on first press
+                convertedDimension: sourceDimension, // Target dimension defaults to source dimension
                 displayValue: valueToConvert, // Commit the input
+                activeDimension: sourceDimension, // UPDATE ACTIVE DIMENSION TO SOURCE
                 builder: { feet: null, inch: null, yard: null, numerator: null, denominator: null, dimension: 1 }, // Clear builder
-                inputBuffer: '' // Clear buffer
+                inputBuffer: '', // Clear buffer
+                isUnitless: sourceUnitless // Preserve source unitless state
              };
           });
           return;
