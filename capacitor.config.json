@@ -1,0 +1,6 @@
+{
+  "appId": "com.glorioustr.cegcalc",
+  "appName": "CEG-Calc",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
