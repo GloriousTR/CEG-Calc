@@ -8,6 +8,7 @@ export enum ButtonType {
 }
 
 export interface FormattedValue {
+  yard: number; // ADDED: Specific value for Yards
   feet: number;
   inch: number;
   numerator: number;
@@ -52,5 +53,6 @@ export interface CalculatorState {
   convertedUnit: 'feet' | 'inch' | 'yard' | null; // The unit to display the result in
   convertedDimension: number; // 1, 2, or 3 for the converted unit
   activeDimension: number; // The dimension of the current result (1, 2, or 3)
-  isUnitless: boolean; // NEW: True if the current result has no specific unit assigned (pure math)
+  isUnitless: boolean; // True if the current result has no specific unit assigned (pure math)
+  preferredUnit: 'feet' | 'inch' | 'yard'; // ADDED: Tracks the user's preferred unit for display (default 'feet')
 }

@@ -21,7 +21,8 @@ export default function App() {
     convertedUnit: null,
     convertedDimension: 1,
     activeDimension: 1,
-    isUnitless: true
+    isUnitless: true,
+    preferredUnit: 'feet' // Default to feet preference
   });
 
   // Toggle Dark Mode
@@ -42,7 +43,9 @@ export default function App() {
 
   // Helper to check if current builder has any units assigned
   const isBuilderUnitless = (b: BuilderState): boolean => {
-      return b.feet === null && b.inch === null && b.yard === null && b.numerator === null && b.denominator === null;
+      // It is unitless if no explicit unit fields are set.
+      // Numerator/Denominator alone are just numbers (fractions) unless combined with units.
+      return b.feet === null && b.inch === null && b.yard === null;
   };
 
   // Handle number input (fills buffer)
@@ -142,7 +145,8 @@ export default function App() {
                       ...prev.builder,
                       dimension: nextDim
                   },
-                  isUnitless: false
+                  isUnitless: false,
+                  preferredUnit: unit // Update preference on cycling too
               };
           }
 
@@ -169,7 +173,8 @@ export default function App() {
               ...newState,
               builder: newBuilder,
               inputBuffer: '', // Clear buffer after commit
-              isUnitless: false // Explicitly set unitless to false
+              isUnitless: false, // Explicitly set unitless to false
+              preferredUnit: unit // Update preferred unit to what was just pressed
           };
       });
   };
@@ -184,7 +189,9 @@ export default function App() {
               numerator: val,
           },
           inputBuffer: '',
-          isUnitless: false // Fractions imply units/dimensions usually, or at least break simple int/dec logic
+          // We do NOT set isUnitless: false here. 
+          // If we were unitless before, we stay unitless. 
+          // If we had units (e.g. 1 Feet 1/2), we stay with units.
       }));
   };
 
@@ -225,9 +232,6 @@ export default function App() {
               b.dimension = 1;
           }
 
-          // Note: We don't necessarily reset isUnitless to true here because we might still be in a calculation chain
-          // that had units. But for the builder itself, if it's empty, it's effectively unitless until a unit is re-added.
-
           return {
               ...resetConversion(prev),
               builder: b,
@@ -239,10 +243,28 @@ export default function App() {
   // Arithmetic Operators
   const handleOperator = (nextOperator: Operator) => {
     const hasNewInput = state.builder.feet !== null || state.builder.inch !== null || state.builder.yard !== null || state.builder.numerator !== null || state.inputBuffer !== '';
-    const inputValue = hasNewInput ? convertBuilderToDecimal(state.builder, state.inputBuffer) : state.displayValue;
+    let inputValue = hasNewInput ? convertBuilderToDecimal(state.builder, state.inputBuffer) : state.displayValue;
     
     // Determine if the current input (builder) is unitless
     const currentInputUnitless = isBuilderUnitless(state.builder);
+
+    // Sticky Unit Logic: 
+    // If the calculator is NOT unitless (e.g. we are in Inch mode), and the user typed a unitless number (e.g. "6"),
+    // we interpret that "6" as "6 Inches" (or whatever the preferred unit is).
+    // The `convertBuilderToDecimal` returns raw feet for unitless inputs (1.0 = 1 ft), so we must scale it.
+    if (!state.isUnitless && currentInputUnitless && hasNewInput) {
+        const power = state.activeDimension === 1 ? 1 : (state.activeDimension === 2 ? 2 : 3);
+        if (state.preferredUnit === 'inch') {
+            // Convert the "raw" value (treated as feet by default) to inches context
+            // Actually, convertBuilderToDecimal returns the raw number for unitless.
+            // If user typed 6, val is 6. We want 6 inches. 6 inches = 0.5 feet.
+            // So we divide by 12.
+            inputValue = inputValue / Math.pow(12, power);
+        } else if (state.preferredUnit === 'yard') {
+            // User typed 2 (Yards). We want 6 feet.
+            inputValue = inputValue * Math.pow(3, power);
+        }
+    }
 
     // Check if we are setting the first operand
     const isSettingFirstOperand = state.previousValue == null;
@@ -268,9 +290,7 @@ export default function App() {
       const result = performCalculation(state.operator, state.previousValue, inputValue);
       
       // The new result is unitless ONLY if BOTH the previous result and the current input are unitless.
-      // e.g. 5 + 5 = 10 (Unitless)
-      // 5 Feet + 5 = 10 Feet (Unitless = false)
-      // 5 + 5 Feet = 10 Feet (Unitless = false)
+      // If Sticky Unit Logic applied (isUnitless=false), then newIsUnitless stays false.
       const newIsUnitless = state.isUnitless && currentInputUnitless;
 
       setState(prev => ({
@@ -300,10 +320,21 @@ export default function App() {
       if (!state.operator || state.previousValue === null) return;
       
       const hasNewInput = state.builder.feet !== null || state.builder.inch !== null || state.builder.yard !== null || state.builder.numerator !== null || state.inputBuffer !== '';
-      const currentValue = hasNewInput ? convertBuilderToDecimal(state.builder, state.inputBuffer) : state.displayValue;
+      let currentValue = hasNewInput ? convertBuilderToDecimal(state.builder, state.inputBuffer) : state.displayValue;
 
       // Determine unitless status
       const currentInputUnitless = isBuilderUnitless(state.builder);
+      
+      // Sticky Unit Logic (Same as handleOperator)
+      if (!state.isUnitless && currentInputUnitless && hasNewInput) {
+        const power = state.activeDimension === 1 ? 1 : (state.activeDimension === 2 ? 2 : 3);
+        if (state.preferredUnit === 'inch') {
+            currentValue = currentValue / Math.pow(12, power);
+        } else if (state.preferredUnit === 'yard') {
+            currentValue = currentValue * Math.pow(3, power);
+        }
+      }
+
       const newIsUnitless = state.isUnitless && currentInputUnitless;
 
       const result = performCalculation(state.operator, state.previousValue, currentValue);
@@ -333,9 +364,109 @@ export default function App() {
         convertedUnit: null,
         convertedDimension: 1,
         activeDimension: 1,
-        isUnitless: true // Reset to unitless
+        isUnitless: true,
+        preferredUnit: 'feet' // Reset to default
       });
   };
+
+  // Keyboard Event Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key;
+      const code = e.code;
+
+      // Numbers 0-9
+      if (/^[0-9]$/.test(key)) {
+        e.preventDefault();
+        handleNumber(key);
+        return;
+      }
+
+      // Decimal . or ,
+      if (key === '.' || key === ',') {
+        e.preventDefault();
+        handleDecimal();
+        return;
+      }
+
+      // Operators
+      if (key === '+') {
+          e.preventDefault();
+          handleOperator(Operator.Add);
+          return;
+      }
+      if (key === '-') {
+          e.preventDefault();
+          handleOperator(Operator.Subtract);
+          return;
+      }
+      if (key === '*' || key.toLowerCase() === 'x') {
+          e.preventDefault();
+          handleOperator(Operator.Multiply);
+          return;
+      }
+
+      // Division vs Fraction Logic
+      // Numpad Divide (/) -> Division
+      if (code === 'NumpadDivide') {
+           e.preventDefault();
+           handleOperator(Operator.Divide);
+           return;
+      }
+      // Standard Forward Slash -> Fraction Builder
+      if (key === '/') {
+           e.preventDefault();
+           handleFractionSlash();
+           return;
+      }
+
+      // Enter / Equals
+      if (key === 'Enter' || key === '=') {
+        e.preventDefault();
+        handleEqual();
+        return;
+      }
+
+      // Backspace
+      if (key === 'Backspace') {
+        e.preventDefault();
+        handleBackspace();
+        return;
+      }
+
+      // Clear (Escape or Delete)
+      if (key === 'Escape' || key === 'Delete') {
+        e.preventDefault();
+        handleClear();
+        return;
+      }
+
+      // Unit Shortcuts
+      if (key.toLowerCase() === 'f') { 
+          e.preventDefault(); 
+          handleUnit('feet'); 
+          return; 
+      }
+      if (key.toLowerCase() === 'i') { 
+          e.preventDefault(); 
+          handleUnit('inch'); 
+          return; 
+      }
+      if (key.toLowerCase() === 'y') { 
+          e.preventDefault(); 
+          handleUnit('yard'); 
+          return; 
+      }
+      if (key.toLowerCase() === 'c') { 
+          e.preventDefault(); 
+          handleConv(); 
+          return; 
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [state]); // Re-bind when state changes to ensure handlers use latest state
 
   // Determine what to display:
   const isBuilding = state.builder.feet !== null || state.builder.inch !== null || state.builder.yard !== null || state.builder.numerator !== null || state.inputBuffer !== '';
@@ -344,7 +475,7 @@ export default function App() {
   // When result is ready, we show the construction unit + optional secondary converted unit.
   const displayData = isBuilding 
       ? builderToDisplay(state.builder, state.inputBuffer)
-      : formatConstructionUnit(state.displayValue, state.convertedUnit, state.convertedDimension, state.activeDimension, state.isUnitless);
+      : formatConstructionUnit(state.displayValue, state.convertedUnit, state.convertedDimension, state.activeDimension, state.preferredUnit, state.isUnitless);
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 flex items-center justify-center h-full p-4 sm:p-8 select-none">

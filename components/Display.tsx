@@ -8,11 +8,12 @@ interface DisplayProps {
 }
 
 const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
-  const { feet, inch, numerator, denominator, isNegative, showFeetLabel, showInchLabel, showYardLabel, showDash, inputBuffer, secondaryDisplay, dimension } = value;
+  const { yard, feet, inch, numerator, denominator, isNegative, showFeetLabel, showInchLabel, showYardLabel, showDash, inputBuffer, secondaryDisplay, dimension } = value;
 
   // We only render parts that have value or are active
   const hasFeet = feet !== 0 || showFeetLabel; 
-  const hasInch = inch !== 0 || showInchLabel || (numerator > 0); 
+  // If numerator exists or label is forced, we ensure the inch section renders.
+  const hasInch = inch !== 0 || showInchLabel; 
   // Yard is usually exclusive or primary, but we'll render it if active
   const hasYard = showYardLabel; // Always show if explicitly set
 
@@ -54,7 +55,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
                 {hasYard && (
                     <div className="flex flex-col items-center">
                         <span className="text-5xl sm:text-[4rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
-                        {feet} 
+                        {yard} 
                         </span>
                         <span className={`text-[10px] font-bold text-gray-400 mt-1 tracking-widest ${showYardLabel ? 'opacity-100' : 'opacity-0'}`}>
                         {dimPrefix}YARD
