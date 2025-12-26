@@ -364,7 +364,7 @@ export default function App() {
         <div className="flex-[6] md:flex-[5.5] bg-gray-50 dark:bg-[#16181b] md:bg-transparent md:dark:bg-transparent px-3 pb-4 pt-2 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 min-h-0">
             {/* Grid Container - Fills available height */}
             <div className="flex-1 w-full min-h-0">
-                <div className="grid grid-cols-4 grid-rows-6 gap-2 md:gap-4 w-full h-full max-w-sm mx-auto md:max-w-none">
+                <div className="grid grid-cols-4 grid-rows-6 gap-2 md:gap-4 w-full h-full">
                 <CalculatorButton label="Conv" type={state.isConversionMode ? ButtonType.Accent : ButtonType.Primary} onClick={handleConv} />
                 <CalculatorButton label="Yard" type={ButtonType.Primary} onClick={() => handleUnit('yard')} />
                 <CalculatorButton label="Feet" type={ButtonType.Primary} onClick={() => handleUnit('feet')} />
