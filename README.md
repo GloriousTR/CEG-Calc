@@ -1,4 +1,8 @@
 <div align="center">
+  # CEG Calc
+</div>
+
+<div align="center">
 CEG Türkiye ofisi tarafından hazırlanan "Mühendislik Hesap Makinesi"
 </div>
 
