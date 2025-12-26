@@ -323,20 +323,21 @@ export default function App() {
       : formatConstructionUnit(state.displayValue, state.convertedUnit, state.convertedDimension, state.activeDimension, state.preferredUnit, state.isUnitless);
 
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 flex items-center justify-center w-full h-full p-0 sm:p-6 md:p-8 select-none overflow-hidden">
+    <div className="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 flex items-center justify-center w-full h-full sm:min-h-screen p-0 sm:p-6 md:p-8 select-none overflow-hidden fixed inset-0">
       
       {/* 
         Main Container 
-        Mobile: Full width/height (w-full h-full), no rounded corners.
-        Desktop (md): Rounded corners, Fixed aspect ratio or size, Flex Row (Left Display, Right Keypad).
+        Mobile: Full width/height (w-full h-[100dvh]), no rounded corners.
+        Tablet (sm): Fixed height/width centered modal.
+        Desktop (md): Rounded corners, 2:1 Aspect Ratio, Flex Row (Left Display, Right Keypad).
       */}
-      <div className="w-full h-full sm:h-auto sm:max-h-[900px] sm:max-w-md md:max-w-7xl md:aspect-[2/1] bg-white dark:bg-[#1C2024] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border-0 sm:border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      <div className="w-full h-[100dvh] sm:h-[850px] sm:max-h-[90dvh] sm:max-w-md md:max-w-7xl md:h-auto md:aspect-[2/1] bg-white dark:bg-[#1C2024] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border-0 sm:border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         
         {/* --- LEFT SECTION (Display) --- */}
-        {/* Mobile: Top 45% height. Desktop: Left 45% width. */}
-        <div className="h-[45%] min-h-[180px] md:h-full md:w-[45%] flex-none md:flex-1 flex flex-col p-6 pt-8 md:p-8 z-10 relative bg-white dark:bg-[#1C2024] transition-colors duration-300">
+        {/* Mobile: Top ~40% flex weight. Desktop: Left ~45% flex weight. */}
+        <div className="flex-[4] md:flex-[4.5] flex flex-col p-6 pt-8 md:p-8 z-10 relative bg-white dark:bg-[#1C2024] transition-colors duration-300">
             {/* Header: Title + Theme Toggle */}
-            <div className="flex justify-between items-center mb-1 md:mb-6">
+            <div className="flex justify-between items-center mb-1 md:mb-6 shrink-0">
                  <div className="text-xl font-bold text-gray-400 dark:text-gray-500 tracking-wide">
                     CEG Calc
                  </div>
@@ -353,16 +354,16 @@ export default function App() {
             </div>
 
             {/* Display Component */}
-            <div className="flex-1 flex flex-col justify-end md:justify-center overflow-hidden">
+            <div className="flex-1 flex flex-col justify-end md:justify-center overflow-hidden min-h-0">
                 <Display value={displayData} onBackspace={handleBackspace} />
             </div>
         </div>
 
         {/* --- RIGHT SECTION (Keypad) --- */}
-        {/* Mobile: Bottom 55% height. Desktop: Right 55% width. */}
-        <div className="h-[55%] md:h-full md:w-[55%] flex-none md:flex-1 bg-gray-50 dark:bg-[#16181b] md:bg-transparent md:dark:bg-transparent px-3 pb-4 pt-2 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800">
-            {/* Grid Container - Fills available height on mobile */}
-            <div className="flex-1 w-full">
+        {/* Mobile: Bottom ~60% flex weight. Desktop: Right ~55% flex weight. */}
+        <div className="flex-[6] md:flex-[5.5] bg-gray-50 dark:bg-[#16181b] md:bg-transparent md:dark:bg-transparent px-3 pb-4 pt-2 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 min-h-0">
+            {/* Grid Container - Fills available height */}
+            <div className="flex-1 w-full min-h-0">
                 <div className="grid grid-cols-4 grid-rows-6 gap-2 md:gap-4 w-full h-full max-w-sm mx-auto md:max-w-none">
                 <CalculatorButton label="Conv" type={state.isConversionMode ? ButtonType.Accent : ButtonType.Primary} onClick={handleConv} />
                 <CalculatorButton label="Yard" type={ButtonType.Primary} onClick={() => handleUnit('yard')} />
