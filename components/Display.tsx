@@ -25,7 +25,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
   return (
     <div 
       onClick={onBackspace}
-      className="flex-1 bg-gray-100 dark:bg-[#111315] rounded-xl mb-4 py-4 px-5 flex flex-col justify-between shadow-inner border border-gray-200 dark:border-gray-800 relative overflow-hidden transition-colors duration-300 cursor-pointer active:bg-gray-200 dark:active:bg-[#0d0e10] group"
+      className="w-full flex-1 bg-gray-100 dark:bg-[#111315] rounded-xl py-4 px-5 flex flex-col justify-between shadow-inner border border-gray-200 dark:border-gray-800 relative overflow-hidden transition-colors duration-300 cursor-pointer active:bg-gray-200 dark:active:bg-[#0d0e10] group min-h-[160px] md:min-h-[240px]"
     >
       
       {/* Top Status Bar */}
@@ -40,7 +40,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
         <div className="flex items-end justify-end w-full select-none pb-1">
             
             {isSimpleNumber ? (
-                <span className="text-6xl sm:text-[5rem] font-mono text-gray-800 dark:text-gray-100 break-all text-right leading-tight">
+                <span className="text-6xl sm:text-[5rem] lg:text-[6rem] font-mono text-gray-800 dark:text-gray-100 break-all text-right leading-tight">
                     {/* If typing a decimal, inputBuffer might be "5.", show that directly if active */}
                     {inputBuffer ? inputBuffer : feet}
                 </span>
@@ -54,7 +54,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
                 {/* Yard */}
                 {hasYard && (
                     <div className="flex flex-col items-center">
-                        <span className="text-5xl sm:text-[4rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
+                        <span className="text-5xl sm:text-[4rem] lg:text-[5rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
                         {yard} 
                         </span>
                         <span className={`text-[10px] font-bold text-gray-400 mt-1 tracking-widest ${showYardLabel ? 'opacity-100' : 'opacity-0'}`}>
@@ -65,7 +65,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
 
                 {/* Dash Separator (Only if mixing Yards and Feet, or Feet and Inches) */}
                 {showDash && hasYard && (showFeetLabel || hasFeet) && (
-                     <div className="flex flex-col justify-start h-[3.5rem] sm:h-[4rem]">
+                     <div className="flex flex-col justify-start h-[3.5rem] sm:h-[4rem] lg:h-[5rem]">
                         <span className="text-2xl sm:text-3xl font-mono text-gray-300 dark:text-gray-600 self-center">-</span>
                     </div>
                 )}
@@ -74,7 +74,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
                 {/* Feet */}
                 {((hasFeet || showFeetLabel) && !showYardLabel) && (
                     <div className="flex flex-col items-center">
-                        <span className="text-5xl sm:text-[4rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
+                        <span className="text-5xl sm:text-[4rem] lg:text-[5rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
                         {feet}
                         </span>
                         <span className={`text-[10px] font-bold text-gray-400 mt-1 tracking-widest ${showFeetLabel ? 'opacity-100' : 'opacity-0'}`}>
@@ -85,7 +85,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
 
                 {/* Dash Separator */}
                 {showDash && !hasYard && (
-                    <div className="flex flex-col justify-start h-[3.5rem] sm:h-[4rem]">
+                    <div className="flex flex-col justify-start h-[3.5rem] sm:h-[4rem] lg:h-[5rem]">
                         <span className="text-2xl sm:text-3xl font-mono text-gray-300 dark:text-gray-600 self-center">-</span>
                     </div>
                 )}
@@ -93,7 +93,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
                 {/* Inches */}
                 {(hasInch || showInchLabel) && (
                     <div className="flex flex-col items-center">
-                        <span className="text-5xl sm:text-[4rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
+                        <span className="text-5xl sm:text-[4rem] lg:text-[5rem] font-mono text-gray-800 dark:text-gray-100 leading-none">
                         {inch}
                         </span>
                         <span className={`text-[10px] font-bold text-gray-400 mt-1 tracking-widest ${showInchLabel ? 'opacity-100' : 'opacity-0'}`}>
@@ -104,12 +104,12 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
 
                 {/* Fraction */}
                 {numerator > 0 && (
-                    <div className="flex flex-col items-start justify-end h-[4rem] sm:h-[4.5rem] ml-1">
+                    <div className="flex flex-col items-start justify-end h-[4rem] sm:h-[4.5rem] lg:h-[5.5rem] ml-1">
                         <div className="flex flex-col items-center leading-none text-gray-800 dark:text-gray-100 font-mono">
-                            <span className="text-xl sm:text-2xl border-b border-gray-400 dark:border-gray-600 px-1 mb-0.5">
+                            <span className="text-xl sm:text-2xl lg:text-3xl border-b border-gray-400 dark:border-gray-600 px-1 mb-0.5">
                                 {numerator}
                             </span>
-                            <span className="text-xl sm:text-2xl px-1">
+                            <span className="text-xl sm:text-2xl lg:text-3xl px-1">
                                 {denominator === 0 ? '' : denominator} 
                             </span>
                         </div>
@@ -121,7 +121,7 @@ const Display: React.FC<DisplayProps> = ({ value, onBackspace }) => {
 
         {/* Secondary Display (Bottom Row) - Converted Value */}
         <div className="h-10 w-full flex items-end justify-end border-t border-gray-200 dark:border-gray-800 mt-2 pt-1">
-             <span className="font-mono text-2xl text-gray-400 dark:text-gray-500 tracking-wider">
+             <span className="font-mono text-2xl lg:text-3xl text-gray-400 dark:text-gray-500 tracking-wider">
                 {secondaryDisplay}
              </span>
         </div>
