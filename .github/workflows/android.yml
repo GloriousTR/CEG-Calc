@@ -27,11 +27,10 @@ jobs:
       - name: Build Web Project
         run: npm run build
 
-      - name: Capacitor Android Check
+            - name: Capacitor Android Check
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          npx cap init "CEG-Calc" "com.glorioustr.cegcalc" --web-dir dist
+          npx cap add android
 
       - name: Capacitor Sync
         run: npx cap sync android
