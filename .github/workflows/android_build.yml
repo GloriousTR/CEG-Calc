@@ -36,7 +36,8 @@ jobs:
       - name: Generate Assets (Icon)
         run: |
           if [ -f "icon.png" ]; then
-            npx capacitor-assets generate --android
+            # İkon iç oranı %80 (0.8) olarak ayarlandı
+            npx capacitor-assets generate --android --iconInsideRatio 0.8
           fi
 
       - name: Sync Capacitor
@@ -45,7 +46,6 @@ jobs:
           npx cap sync android
 
       - name: Force Fix Dependency Conflicts
-        # Bu adım, Gradle'a tüm Kotlin kütüphanelerini aynı sürüme zorlamasını söyler
         run: |
           cat <<EOF >> android/build.gradle
           subprojects {
@@ -65,9 +65,27 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug --stacktrace
+          ./gradlew clean assembleDebug
 
       - name: Rename APK
+        run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.1.${{ github.run_number }}
+          name: "CEG Calc v1.1.${{ github.run_number }}"
+          draft: false
+          prerelease: false
+          files: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifact (Yedek)
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEG_Calc_v1.1.${{ github.run_number }}
+          path: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
         run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
 
       - name: Create GitHub Release
