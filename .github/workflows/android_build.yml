@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Set up JDK 21 # BURAYI 21 YAPTIK (Hatanın çözümü)
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -28,24 +28,21 @@ jobs:
       - name: Build Web Project
         run: npm run build
 
-      - name: Initialize Capacitor
+      - name: Reset Android Project (Temiz Kurulum)
+        # Çakışmaları önlemek için eski android klasörünü siliyoruz
         run: |
-          if [ ! -f "capacitor.config.json" ] && [ ! -f "capacitor.config.ts" ]; then
-            npx cap init "CEG-Calc" "com.glorioustr.cegcalc" --web-dir dist
-          fi
+          rm -rf android
+          npx cap add android
 
       - name: Generate Assets (Icon)
         run: |
-          # Ana dizindeki icon.png dosyasını kullanır
+          # Ana dizindeki icon.png dosyasını kontrol eder ve ikonları üretir
           if [ -f "icon.png" ]; then
             npx capacitor-assets generate --android
           fi
 
-      - name: Add and Sync Android
+      - name: Sync Capacitor
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
           npx cap copy android
           npx cap sync android
 
@@ -68,9 +65,3 @@ jobs:
           files: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Artifact (Yedek)
-        uses: actions/upload-artifact@v4
-        with:
-          name: CEG_Calc_v1.1.${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
