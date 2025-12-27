@@ -33,10 +33,19 @@ jobs:
           rm -rf android
           npx cap add android
 
+      - name: Prepare Icon Directory
+        # İkon aracının çalışması için gerekli klasörü oluşturuyoruz
+        run: |
+          mkdir -p assets
+          if [ -f "icon.png" ]; then
+            cp icon.png assets/icon.png
+          fi
+
       - name: Generate Assets (Icon)
         run: |
-          if [ -f "icon.png" ]; then
-            npx capacitor-assets generate --android --iconInsideRatio 0.8
+          if [ -d "assets" ]; then
+            # Assets klasöründeki ikonları %80 oranla Android'e işler
+            npx capacitor-assets generate --android --assetDir assets --iconInsideRatio 0.8
           fi
 
       - name: Sync Capacitor
@@ -79,9 +88,3 @@ jobs:
           files: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Artifact (Yedek)
-        uses: actions/upload-artifact@v4
-        with:
-          name: CEG_Calc_v1.1.${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
