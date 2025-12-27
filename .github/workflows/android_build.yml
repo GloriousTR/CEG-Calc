@@ -14,10 +14,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21 # BURAYI 21 YAPTIK (Hatanın çözümü)
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Install Dependencies
@@ -36,7 +36,7 @@ jobs:
 
       - name: Generate Assets (Icon)
         run: |
-          # Eğer ana dizinde icon.png varsa ikonları oluşturur
+          # Ana dizindeki icon.png dosyasını kullanır
           if [ -f "icon.png" ]; then
             npx capacitor-assets generate --android
           fi
@@ -46,7 +46,6 @@ jobs:
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          # İkonları android klasörüne kopyalamak için copy komutunu ekledik
           npx cap copy android
           npx cap sync android
 
