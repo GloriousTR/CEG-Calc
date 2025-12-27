@@ -19,61 +19,19 @@ export const formatConstructionUnit = (
 ): FormattedValue => {
   const isNegative = decimalFeet < 0;
   
-  // If unitless, we want to show Integer + Fraction (if applicable) without units
+  // If unitless, we want to show the raw Decimal number (Standard Math Mode)
+  // We do NOT want to force fractions (e.g. 0.5 becoming 1/2) unless explicitly in a unit mode.
   if (isUnitless) {
-      const absVal = Math.abs(decimalFeet);
-      // Floating point fix
-      const safeVal = parseFloat(absVal.toFixed(6));
+      // Keep precision manageable but standard for display
+      const val = parseFloat(decimalFeet.toFixed(6));
       
-      const wholeNumber = Math.floor(safeVal + 0.0001);
-      const remainder = safeVal - wholeNumber;
-      
-      // Calculate fraction for unitless (using standard construction precision 64)
-      const precision = 64;
-      const fractionalVal = Math.round(remainder * precision);
-      
-      let num = fractionalVal;
-      let den = precision;
-      
-      // Simplify fraction
-      while (num > 0 && num % 2 === 0 && den > 1) { num /= 2; den /= 2; }
-      
-      let finalWhole = wholeNumber;
-      let finalNum = num;
-      let finalDen = den;
-
-      if (finalNum === finalDen) {
-          finalWhole += 1;
-          finalNum = 0;
-          finalDen = 0;
-      }
-
-      // If fraction is essentially 0
-      if (finalNum === 0) {
-           return {
-              yard: 0,
-              feet: parseFloat(Math.abs(decimalFeet).toFixed(4)), 
-              inch: 0,
-              numerator: 0,
-              denominator: 0,
-              isNegative,
-              showFeetLabel: false,
-              showInchLabel: false,
-              showYardLabel: false,
-              showDash: false,
-              inputBuffer: '',
-              secondaryDisplay: '',
-              dimension: 1
-           };
-      }
-
       return {
           yard: 0,
-          feet: finalWhole, // Integer part uses 'feet' slot
-          inch: 0,          // 'inch' slot is unused to prevent "0" display
-          numerator: finalNum,
-          denominator: finalDen,
-          isNegative,
+          feet: val, // Pass the full signed decimal value here
+          inch: 0,
+          numerator: 0,
+          denominator: 0,
+          isNegative: false, // Set false because sign is included in 'feet' value for simple display
           showFeetLabel: false,
           showInchLabel: false,
           showYardLabel: false,
