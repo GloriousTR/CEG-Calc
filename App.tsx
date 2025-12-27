@@ -331,7 +331,7 @@ export default function App() {
         Tablet (sm): Fixed height/width centered modal.
         Desktop (md): Rounded corners, 2:1 Aspect Ratio, Flex Row (Left Display, Right Keypad).
       */}
-      <div className="w-full h-[100dvh] sm:h-[850px] sm:max-h-[90dvh] sm:max-w-md md:max-w-7xl md:h-auto md:aspect-[2/1] bg-white dark:bg-[#1C2024] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border-0 sm:border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      <div className="w-full h-[100dvh] sm:h-[850px] sm:max-h-[90dvh] sm:max-w-md md:max-w-5xl md:h-auto md:aspect-[2/1] bg-white dark:bg-[#1C2024] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border-0 sm:border border-gray-200 dark:border-gray-800 transition-colors duration-300">
         
         {/* --- LEFT SECTION (Display) --- */}
         {/* Mobile: Top ~40% flex weight. Desktop: Left ~45% flex weight. */}
