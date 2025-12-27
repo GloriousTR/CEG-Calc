@@ -28,15 +28,13 @@ jobs:
       - name: Build Web Project
         run: npm run build
 
-      - name: Reset Android Project (Temiz Kurulum)
-        # Çakışmaları önlemek için eski android klasörünü siliyoruz
+      - name: Reset Android Project
         run: |
           rm -rf android
           npx cap add android
 
       - name: Generate Assets (Icon)
         run: |
-          # Ana dizindeki icon.png dosyasını kontrol eder ve ikonları üretir
           if [ -f "icon.png" ]; then
             npx capacitor-assets generate --android
           fi
@@ -46,11 +44,18 @@ jobs:
           npx cap copy android
           npx cap sync android
 
+      - name: Fix Duplicate Class Conflicts
+        # Gradle'ın Kotlin sürümleri arasındaki çakışmayı zorla çözmesini sağlar
+        run: |
+          echo "android.enableJetifier=true" >> android/gradle.properties
+          echo "android.useAndroidX=true" >> android/gradle.properties
+
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          # Gradle önbelleğini temizleyip derlemeyi başlatır
+          ./gradlew clean assembleDebug
 
       - name: Rename APK
         run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
