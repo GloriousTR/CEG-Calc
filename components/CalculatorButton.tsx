@@ -10,18 +10,18 @@ interface CalculatorButtonProps {
   cols?: number;
 }
 
-const CalculatorButton: React.FC<CalculatorButtonProps> = ({ 
-  label, 
-  type = ButtonType.Neutral, 
-  onClick, 
+const CalculatorButton: React.FC<CalculatorButtonProps> = ({
+  label,
+  type = ButtonType.Neutral,
+  onClick,
   className = '',
   cols = 1
 }) => {
-  
+
   // Changed h-14 to h-full to allow grid to control height
   // Changed rounded-lg to rounded-2xl for better aesthetics on taller buttons
   const baseClasses = "h-full w-full font-bold rounded-2xl shadow-btn active:shadow-btn-active active:scale-95 transition-all flex items-center justify-center select-none";
-  
+
   let typeClasses = "";
   let textClasses = "text-xl";
 
@@ -46,24 +46,24 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
   }
 
   if (type === ButtonType.Memory) {
-     return (
-        <div 
-          className={`col-span-${cols} ${baseClasses} ${typeClasses} ${className}`}
-          style={{ gridColumn: cols > 1 ? `span ${cols} / span ${cols}` : undefined }}
-        >
-             <img 
-                src="https://i.hizliresim.com/9j58288.png"
-                alt="CEG"
-                crossOrigin="anonymous"
-                loading="eager"
-                className="absolute inset-0 w-full h-full object-cover object-center"
-             />
-        </div>
-     )
+    return (
+      <div
+        className={`col-span-${cols} ${baseClasses} ${typeClasses} ${className}`}
+        style={{ gridColumn: cols > 1 ? `span ${cols} / span ${cols}` : undefined }}
+      >
+        <img
+          src="https://i.hizliresim.com/9j58288.png"
+          alt="CEG"
+          crossOrigin="anonymous"
+          loading="eager"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+      </div>
+    )
   }
 
   return (
-    <button 
+    <button
       onClick={onClick}
       className={`col-span-${cols} ${baseClasses} ${typeClasses} ${textClasses} ${className}`}
       style={{ gridColumn: cols > 1 ? `span ${cols} / span ${cols}` : undefined }}
@@ -73,4 +73,4 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
   );
 };
 
-export default CalculatorButton;
+export default React.memo(CalculatorButton);
