@@ -14,24 +14,43 @@ jobs:
 
       - name: Calculate Version
         id: version
-        # This script finds the latest tag starting with v2., parses it, and increments.
-        # If no tag exists, starts at v2.0
+        shell: bash
         run: |
-          # Get latest tag that matches v2.*
-          LATEST_TAG=$(git describe --tags --match "v2.*" --abbrev=0 2>/dev/null || echo "v2.0")
+          # Default to 2.0
+          NEXT_VERSION="2.0"
           
-          # If only v2.0 is returned and it doesn't exist yet (first run fallback), verify
-          if [ "$LATEST_TAG" == "v2.0" ] && ! git rev-parse "v2.0" >/dev/null 2>&1; then
+          # Fetch all tags
+          git fetch --tags --force
+          
+          # Find the latest tag that looks like v2.something (integers only)
+          # We use sort -V to handle numerical sorting correctly (v2.9 vs v2.10)
+          LATEST_TAG=$(git tag -l "v2.*" | sort -V | tail -n 1)
+          
+          echo "Found Latest Tag: $LATEST_TAG"
+          
+          if [ -z "$LATEST_TAG" ]; then
+             echo "No existing v2 tags found. Starting at 2.0"
              NEXT_VERSION="2.0"
           else
-             # Extract minor integer (e.g. from v2.5 -> 5)
-             CURRENT_MINOR=$(echo $LATEST_TAG | sed 's/v2.//')
-             # Increment
-             NEXT_MINOR=$((CURRENT_MINOR + 1))
-             NEXT_VERSION="2.$NEXT_MINOR"
+             # Check if LATEST_TAG is exactly v2.0 and if it is actually associated with a commit (it exists)
+             # If v2.0 exists, we must increment. If it's just a string calculation (unlikely here as we listed tags), it exists.
+             
+             # Extract the minor number. e.g. v2.15 -> 15
+             # Remove 'v2.' prefix
+             CURRENT_MINOR=${LATEST_TAG#v2.}
+             
+             # Check if CURRENT_MINOR is a number
+             if [[ "$CURRENT_MINOR" =~ ^[0-9]+$ ]]; then
+                 NEXT_MINOR=$((CURRENT_MINOR + 1))
+                 NEXT_VERSION="2.$NEXT_MINOR"
+             else
+                 # Fallback if tag format is weird
+                 echo "Warning: Could not parse minor version from $LATEST_TAG. Defaulting to 2.0 (dangerous collision potential)"
+                 NEXT_VERSION="2.0" 
+             fi
           fi
           
-          echo "Calculated Next Version: $NEXT_VERSION"
+          echo "Calculated Version: $NEXT_VERSION"
           echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Node.js

@@ -10,6 +10,8 @@ interface CalculatorButtonProps {
   cols?: number;
 }
 
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+
 const CalculatorButton: React.FC<CalculatorButtonProps> = ({
   label,
   type = ButtonType.Neutral,
@@ -17,6 +19,15 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
   className = '',
   cols = 1
 }) => {
+
+  const handleClick = async () => {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch (e) {
+      // Ignore errors on platforms where not supported
+    }
+    onClick();
+  };
 
   // Changed h-14 to h-full to allow grid to control height
   // Changed rounded-lg to rounded-2xl for better aesthetics on taller buttons
@@ -64,7 +75,7 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
 
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={`col-span-${cols} ${baseClasses} ${typeClasses} ${textClasses} ${className}`}
       style={{ gridColumn: cols > 1 ? `span ${cols} / span ${cols}` : undefined }}
     >
