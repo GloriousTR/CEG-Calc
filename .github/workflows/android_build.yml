@@ -79,6 +79,7 @@ jobs:
           name: "CEG Calc v1.1.${{ github.run_number }}"
           draft: false
           prerelease: false
+          allow_updates: true
           files: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
