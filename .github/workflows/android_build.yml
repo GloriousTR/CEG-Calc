@@ -7,7 +7,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Fetch depth 0 is critical for calculating tags
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Version
+        id: version
+        # This script finds the latest tag starting with v2., parses it, and increments.
+        # If no tag exists, starts at v2.0
+        run: |
+          # Get latest tag that matches v2.*
+          LATEST_TAG=$(git describe --tags --match "v2.*" --abbrev=0 2>/dev/null || echo "v2.0")
+          
+          # If only v2.0 is returned and it doesn't exist yet (first run fallback), verify
+          if [ "$LATEST_TAG" == "v2.0" ] && ! git rev-parse "v2.0" >/dev/null 2>&1; then
+             NEXT_VERSION="2.0"
+          else
+             # Extract minor integer (e.g. from v2.5 -> 5)
+             CURRENT_MINOR=$(echo $LATEST_TAG | sed 's/v2.//')
+             # Increment
+             NEXT_MINOR=$((CURRENT_MINOR + 1))
+             NEXT_VERSION="2.$NEXT_MINOR"
+          fi
+          
+          echo "Calculated Next Version: $NEXT_VERSION"
+          echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,13 +58,17 @@ jobs:
           rm -rf android
           npx cap add android
 
-      - name: Generate Assets (Icon)
-        # Hata veren parametreleri kaldırıp en sade ve çalışan komutu kullanıyoruz
+      - name: Configure Assets
+        # Explicitly copy root icon.png to assets folder where capacitor-assets looks for it
         run: |
+          mkdir -p assets
           if [ -f "icon.png" ]; then
-            # capacitor-assets varsayılan olarak ana dizindeki icon.png'yi görür
-            npx capacitor-assets generate --android
+            cp icon.png assets/icon.png
           fi
+
+      - name: Generate Assets (Icon)
+        run: |
+          npx capacitor-assets generate --android
 
       - name: Sync Capacitor
         run: |
@@ -47,7 +76,6 @@ jobs:
           npx cap sync android
 
       - name: Force Fix Dependency Conflicts
-        # Kotlin çakışmalarını engelleyen kritik adım
         run: |
           cat <<EOF >> android/build.gradle
           subprojects {
@@ -70,21 +98,23 @@ jobs:
           ./gradlew clean assembleDebug
 
       - name: Rename APK
-        run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v2.0.${{ github.run_number }}.apk
+        env: 
+           VERSION: ${{ steps.version.outputs.VERSION }}
+        run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v${VERSION}.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.${{ github.run_number }}
-          name: "CEG Calc v2.0.${{ github.run_number }}"
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: "CEG Calc v${{ steps.version.outputs.VERSION }}"
           draft: false
           prerelease: false
-          files: android/app/build/outputs/apk/debug/CEG_Calc_v2.0.${{ github.run_number }}.apk
+          files: android/app/build/outputs/apk/debug/CEG_Calc_v${{ steps.version.outputs.VERSION }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Artifact (Yedek)
+      - name: Upload Artifact (Backup)
         uses: actions/upload-artifact@v4
         with:
-          name: CEG_Calc_v2.0.${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/CEG_Calc_v2.0.${{ github.run_number }}.apk
+          name: CEG_Calc_v${{ steps.version.outputs.VERSION }}
+          path: android/app/build/outputs/apk/debug/CEG_Calc_v${{ steps.version.outputs.VERSION }}.apk
