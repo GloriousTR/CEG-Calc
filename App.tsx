@@ -5,10 +5,16 @@ import CalculatorButton from './components/CalculatorButton';
 import { ButtonType, Operator } from './types';
 import { formatConstructionUnit, builderToDisplay } from './utils/formatter';
 import { calculatorReducer, initialCalculatorState, CalculatorActionType } from './utils/calculatorReducer';
+import { checkForUpdate } from './utils/updateChecker';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [state, dispatch] = useReducer(calculatorReducer, initialCalculatorState);
+
+  // Check for updates on mount
+  useEffect(() => {
+    checkForUpdate();
+  }, []);
 
   // Toggle Dark Mode
   useEffect(() => {
