@@ -70,22 +70,22 @@ jobs:
           ./gradlew clean assembleDebug
 
       - name: Rename APK
-        run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
+        run: mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/CEG_Calc_v2.0.${{ github.run_number }}.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v1.1.${{ github.run_number }}
-          name: "CEG Calc v1.1.${{ github.run_number }}"
+          tag_name: v2.0.${{ github.run_number }}
+          name: "CEG Calc v2.0.${{ github.run_number }}"
           draft: false
           prerelease: false
           allow_updates: true
-          files: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
+          files: android/app/build/outputs/apk/debug/CEG_Calc_v2.0.${{ github.run_number }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifact (Yedek)
         uses: actions/upload-artifact@v4
         with:
-          name: CEG_Calc_v1.1.${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/CEG_Calc_v1.1.${{ github.run_number }}.apk
+          name: CEG_Calc_v2.0.${{ github.run_number }}
+          path: android/app/build/outputs/apk/debug/CEG_Calc_v2.0.${{ github.run_number }}.apk
