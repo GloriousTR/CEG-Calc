@@ -22,9 +22,9 @@ jobs:
           # Fetch all tags
           git fetch --tags --force
           
-          # Find the latest tag that looks like v2.something (integers only)
-          # We use sort -V to handle numerical sorting correctly (v2.9 vs v2.10)
-          LATEST_TAG=$(git tag -l "v2.*" | sort -V | tail -n 1)
+          # Find the latest tag that looks like v2.something (integers only, no sub-minor)
+          # We use grep to filter strictly v2.0, v2.1, etc. ensuring we ignore v2.0.48
+          LATEST_TAG=$(git tag -l "v2.*" | grep -E "^v2\.[0-9]+$" | sort -V | tail -n 1)
           
           echo "Found Latest Tag: $LATEST_TAG"
           
