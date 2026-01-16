@@ -109,6 +109,26 @@ jobs:
           echo "android.enableJetifier=true" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
 
+      - name: Update Version in Gradle
+        env: 
+           VERSION: ${{ steps.version.outputs.VERSION }}
+           BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          # Calculate version code (e.g., 2.3 -> 20300 or just use run_number)
+          # We'll use run_number for simplicity and strict increase requirements
+          VERSION_CODE=$BUILD_NUMBER
+          
+          echo "Updating build.gradle with versionName=$VERSION and versionCode=$VERSION_CODE"
+          
+          # Use sed to replace the default values in android/app/build.gradle
+          # We look for "versionCode 1" and "versionName "1.0"" pattern which is standard in Capacitor templates
+          sed -i "s/versionCode 1/versionCode $VERSION_CODE/g" android/app/build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"$VERSION\"/g" android/app/build.gradle
+          
+          # Verify change
+          grep "versionCode" android/app/build.gradle
+          grep "versionName" android/app/build.gradle
+
       - name: Build APK
         run: |
           cd android
