@@ -1,8 +1,10 @@
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
 
-interface GithubRelease {
+export interface GithubRelease {
     tag_name: string;
     assets: {
         browser_download_url: string;
@@ -10,87 +12,131 @@ interface GithubRelease {
         content_type: string;
     }[];
     html_url: string;
+    body: string; // Release notes
 }
 
 const GITHUB_REPO = "GloriousTR/CEG-Calc";
-const REQS_PER_HOUR_LIMIT_WARNING = true; // Just a flag to remind us
 
-export const checkForUpdate = async (): Promise<void> => {
-    // Only check on native platforms (Android/iOS)
-    if (!Capacitor.isNativePlatform()) {
-        console.log("Not a native platform, skipping update check.");
-        return;
-    }
+/**
+ * Checks for updates and returns release info if a newer version exists.
+ * Returns null if up to date or error.
+ */
+export const checkForUpdate = async (): Promise<GithubRelease | null> => {
+    if (!Capacitor.isNativePlatform()) return null;
 
     try {
-        // 1. Get current app version
         const appInfo = await App.getInfo();
-        const currentVersion = appInfo.version; // e.g., "2.0.0" or "2.0"
+        const currentVersion = appInfo.version;
 
-        console.log(`Current App Version: ${currentVersion}`);
+        console.log(`Current Version: ${currentVersion}`);
 
-        // 2. Fetch latest release from GitHub
-        // Note: This is an unauthenticated request, limited to 60/hr per IP.
-        // For a small app, this is usually fine.
         const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
-
-        if (!response.ok) {
-            if (response.status === 403) {
-                console.warn("GitHub API rate limit exceeded for update check.");
-            }
-            throw new Error(`GitHub API Error: ${response.status}`);
-        }
+        if (!response.ok) throw new Error('GitHub API Error');
 
         const latestRelease: GithubRelease = await response.json();
-        const latestTag = latestRelease.tag_name; // e.g., "v2.1"
+        const latestTag = latestRelease.tag_name;
 
-        // 3. Compare versions
-        // Clean tags: "v2.1" -> "2.1"
         const cleanCurrent = cleanVersion(currentVersion);
         const cleanLatest = cleanVersion(latestTag);
 
-        console.log(`Checking update: ${cleanCurrent} vs ${cleanLatest}`);
-
         if (isNewer(cleanLatest, cleanCurrent)) {
-            // 4. Find the APK asset
-            const apkAsset = latestRelease.assets.find(asset => asset.name.endsWith('.apk'));
-            const downloadUrl = apkAsset ? apkAsset.browser_download_url : latestRelease.html_url;
-
-            // 5. Notify User using native confirm (or alert)
-            // We use window.confirm for simplicity, which maps to a native dialog in Capacitor Web/Android often,
-            // or we can use @capacitor/dialog if we strictly want native UI. 
-            // JavaScript's confirm() works fine in Capacitor Android (shows a native-looking dialog).
-            const shouldUpdate = window.confirm(
-                `Yeni Güncelleme Mevcut!\n\nSürüm: ${latestTag}\n\nYenilikleri almak için şimdi güncellemek ister misiniz?`
-            );
-
-            if (shouldUpdate) {
-                // 6. Open download link
-                await Browser.open({ url: downloadUrl });
-            }
-        } else {
-            console.log("App is up to date.");
+            return latestRelease;
         }
-
     } catch (error) {
-        console.error("Failed to check for updates:", error);
+        console.error("Update check failed:", error);
     }
+    return null;
 };
 
 /**
- * Removes 'v' prefix and other noise
+ * Downloads the APK from the release asset URL.
+ * updates progress callback (0-100).
+ * Returns the file path of the downloaded APK.
  */
+export const downloadUpdate = async (
+    release: GithubRelease,
+    onProgress: (progress: number) => void
+): Promise<string> => {
+    const apkAsset = release.assets.find(a => a.name.endsWith('.apk'));
+    if (!apkAsset) throw new Error("No APK found in release");
+
+    const downloadUrl = apkAsset.browser_download_url;
+    const fileName = apkAsset.name;
+    const path = `updates/${fileName}`;
+
+    // We use fetch since Capacitor Http plugin is optional and fetch works fine for blobs
+    // BUT fetch doesn't give progress. For progress, we need XMLHTTPRequest or a stream reader.
+    // We'll use a simple stream reader approach for progress.
+
+    const response = await fetch(downloadUrl);
+    if (!response.body) throw new Error("Download failed: No body");
+
+    const contentLength = response.headers.get('Content-Length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+    let loaded = 0;
+    const reader = response.body.getReader();
+    const chunks = [];
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        loaded += value.length;
+
+        if (total > 0) {
+            onProgress(Math.min((loaded / total) * 100, 100)); // Cap at 100
+        }
+    }
+
+    // Combine chunks
+    const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
+    const base64 = await blobToBase64(blob);
+
+    // Save to filesystem (Cache directory is best for temporary updates)
+    const savedFile = await Filesystem.writeFile({
+        path: path,
+        data: base64,
+        directory: Directory.Cache,
+        recursive: true
+    });
+
+    return savedFile.uri;
+};
+
+export const installAPK = async (fileUri: string) => {
+    try {
+        await FileOpener.open({
+            filePath: fileUri,
+            contentType: 'application/vnd.android.package-archive'
+        });
+    } catch (e) {
+        console.error("File Open Error:", e);
+        throw e;
+    }
+};
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+            // extract base64 data from "data:application/xxx;base64,....."
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+        };
+        reader.readAsDataURL(blob);
+    });
+};
+
 function cleanVersion(ver: string): string {
     return ver.replace(/^v/, '').trim();
 }
 
-/**
- * Returns true if v1 > v2 (semver-ish)
- */
 function isNewer(v1: string, v2: string): boolean {
     const v1Parts = v1.split('.').map(Number);
     const v2Parts = v2.split('.').map(Number);
-
     for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); ++i) {
         const p1 = v1Parts[i] || 0;
         const p2 = v2Parts[i] || 0;

@@ -109,6 +109,23 @@ jobs:
           echo "android.enableJetifier=true" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
 
+      - name: Inject Permissions
+        run: |
+          # Inject REQUEST_INSTALL_PACKAGES permission for in-app updates
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />' android/app/src/main/AndroidManifest.xml
+          
+          # Ensure file_paths.xml exists and covers cache paths for FileProvider
+          mkdir -p android/app/src/main/res/xml
+          cat <<EOF > android/app/src/main/res/xml/file_paths.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths xmlns:android="http://schemas.android.com/apk/res/android">
+              <external-path name="external" path="." />
+              <external-files-path name="external_files" path="." />
+              <cache-path name="cache" path="." />
+              <files-path name="files" path="." />
+          </paths>
+          EOF
+
       - name: Update Version in Gradle
         env: 
            VERSION: ${{ steps.version.outputs.VERSION }}

@@ -5,16 +5,50 @@ import CalculatorButton from './components/CalculatorButton';
 import { ButtonType, Operator } from './types';
 import { formatConstructionUnit, builderToDisplay } from './utils/formatter';
 import { calculatorReducer, initialCalculatorState, CalculatorActionType } from './utils/calculatorReducer';
-import { checkForUpdate } from './utils/updateChecker';
+import { checkForUpdate, downloadUpdate, installAPK, GithubRelease } from './utils/updateChecker';
+import { UpdateModal } from './components/UpdateModal';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [state, dispatch] = useReducer(calculatorReducer, initialCalculatorState);
 
+  // Update State
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateRelease, setUpdateRelease] = useState<GithubRelease | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   // Check for updates on mount
   useEffect(() => {
-    checkForUpdate();
+    const check = async () => {
+      const release = await checkForUpdate();
+      if (release) {
+        setUpdateRelease(release);
+        setShowUpdateModal(true);
+      }
+    };
+    check();
   }, []);
+
+  const handleUpdateConfirm = async () => {
+    if (!updateRelease) return;
+    setIsDownloading(true);
+    try {
+      const filePath = await downloadUpdate(updateRelease, (progress) => {
+        setDownloadProgress(progress);
+      });
+      setIsDownloading(false);
+      await installAPK(filePath);
+    } catch (error) {
+      console.error("Update failed", error);
+      setIsDownloading(false);
+      alert("İndirme başarısız oldu. Lütfen internet bağlantınızı kontrol edin.");
+    }
+  };
+
+  const handleUpdateCancel = () => {
+    setShowUpdateModal(false);
+  };
 
   // Toggle Dark Mode
   useEffect(() => {
@@ -169,6 +203,15 @@ export default function App() {
         </div>
 
       </div>
+      <UpdateModal
+        isOpen={showUpdateModal}
+        version={updateRelease?.tag_name || ''}
+        releaseNotes={updateRelease?.body || ''}
+        onConfirm={handleUpdateConfirm}
+        onCancel={handleUpdateCancel}
+        isDownloading={isDownloading}
+        progress={downloadProgress}
+      />
     </div>
   );
 }
