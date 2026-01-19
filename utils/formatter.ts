@@ -207,7 +207,7 @@ export const formatConstructionUnit = (
     };
 };
 
-export const builderToDisplay = (builder: BuilderState, buffer: string): FormattedValue => {
+export const builderToDisplay = (builder: BuilderState, buffer: string, preferredUnit?: 'feet' | 'inch' | 'yard'): FormattedValue => {
     // Determine where the buffer is "previewing"
     let previewFeet = builder.feet || 0;
     let previewYard = builder.yard || 0;
@@ -253,6 +253,9 @@ export const builderToDisplay = (builder: BuilderState, buffer: string): Formatt
         }
     }
 
+    // Determine label visibility based on active builder parts OR preferred unit + fraction context
+    const hasFraction = previewNum > 0 || builder.numerator !== null;
+
     return {
         yard: previewYard,
         feet: previewFeet,
@@ -260,9 +263,9 @@ export const builderToDisplay = (builder: BuilderState, buffer: string): Formatt
         numerator: previewNum,
         denominator: previewDenom,
         isNegative: false,
-        showFeetLabel: builder.feet !== null,
-        showInchLabel: builder.inch !== null,
-        showYardLabel: builder.yard !== null,
+        showFeetLabel: builder.feet !== null || (hasFraction && preferredUnit === 'feet'),
+        showInchLabel: builder.inch !== null || (hasFraction && preferredUnit === 'inch'),
+        showYardLabel: builder.yard !== null || (hasFraction && preferredUnit === 'yard'),
         showDash: builder.feet !== null && (builder.inch !== null || (buffer !== '' && builder.yard === null)),
         inputBuffer: buffer,
         dimension: builder.dimension

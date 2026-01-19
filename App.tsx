@@ -126,7 +126,7 @@ export default function App() {
 
   const isBuilding = state.builder.feet !== null || state.builder.inch !== null || state.builder.yard !== null || state.builder.numerator !== null || state.inputBuffer !== '';
   const displayData = isBuilding
-    ? builderToDisplay(state.builder, state.inputBuffer)
+    ? builderToDisplay(state.builder, state.inputBuffer, state.preferredUnit)
     : formatConstructionUnit(state.displayValue, state.convertedUnit, state.convertedDimension, state.activeDimension, state.preferredUnit, state.isUnitless);
 
   return (
