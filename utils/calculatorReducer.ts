@@ -239,7 +239,10 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
             const isSettingFirstOperand = state.previousValue == null;
 
             if (isSettingFirstOperand) {
-                const currentDim = state.builder.dimension;
+                // BUG FIX: If we are using the result of a previous calculation (hasNewInput is FALSE),
+                // we must preserve the dimension of that result (activeDimension), 
+                // NOT the builder dimension (which is reset to 1).
+                const currentDim = hasNewInput ? state.builder.dimension : state.activeDimension;
                 return {
                     ...resetConversion(state),
                     previousValue: inputValue,
