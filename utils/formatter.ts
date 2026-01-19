@@ -42,21 +42,24 @@ export const formatConstructionUnit = (
         };
     }
 
-    // NEW: For Square/Cubic units with explicit conversion, show decimal directly
+    // NEW: For Square/Cubic units, show decimal directly
     // Feet-Inch-Fraction format only makes sense for linear (1D) measurements
-    if (convertedUnit && primaryDimension > 1) {
+    // This applies whether using conversion mode OR regular input with SQ/CB units
+    if (primaryDimension > 1 && !isUnitless) {
+        // Use convertedUnit if explicitly set, otherwise use preferredUnit
+        const displayUnit = convertedUnit || preferredUnit;
         const dimPrefix = getDimPrefix(primaryDimension);
         const convPower = primaryDimension === 2 ? 2 : 3;
 
         let val = decimalFeet;
         let unitLabel = '';
 
-        if (convertedUnit === 'feet') {
+        if (displayUnit === 'feet') {
             unitLabel = `${dimPrefix}FEET`;
-        } else if (convertedUnit === 'inch') {
+        } else if (displayUnit === 'inch') {
             val = decimalFeet * Math.pow(12, convPower);
             unitLabel = `${dimPrefix}INCH`;
-        } else if (convertedUnit === 'yard') {
+        } else if (displayUnit === 'yard') {
             val = decimalFeet / Math.pow(3, convPower);
             unitLabel = `${dimPrefix}YARD`;
         }
