@@ -308,8 +308,29 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
             // Clamp to valid range [1, 3], treat 0 as 1 (linear)
             resultDim = Math.min(3, Math.max(1, resultDim));
 
+            // AUTO-CONVERSION LOGIC
+            let autoConvertedUnit: 'feet' | 'inch' | 'yard' | null = null;
+
+            if (resultDim === 2) {
+                // AREA: Default to Sq Feet unless inputs were specifically Inch or Yard
+                // If user did Inch x Inch = Sq Inch
+                // If user did Feet x Feet = Sq Feet
+                // If mixed or otherwise = Sq Feet (Construction Standard)
+                if (state.preferredUnit === 'inch' && state.builder.inch !== null) {
+                    autoConvertedUnit = 'inch';
+                } else if (state.preferredUnit === 'yard' && state.builder.yard !== null) {
+                    autoConvertedUnit = 'yard';
+                } else {
+                    autoConvertedUnit = 'feet'; // Default Area unit
+                }
+            } else if (resultDim === 3) {
+                // VOLUME: User explicitly requested "Sq feet x inch = cubic yard"
+                // Construction standard is often Cubic Yards for volume (concrete etc)
+                autoConvertedUnit = 'yard';
+            }
+
             return {
-                ...resetConversion(state),
+                ...resetConversion(state), // First reset
                 displayValue: result,
                 previousValue: null,
                 operator: Operator.None,
@@ -317,7 +338,12 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
                 inputBuffer: '',
                 builder: { feet: null, inch: null, yard: null, numerator: null, denominator: null, dimension: 1 },
                 isUnitless: newIsUnitless,
-                activeDimension: resultDim
+                activeDimension: resultDim,
+                // Apply auto-conversion if valid unit is found, otherwise null (displays as preferred/default)
+                convertedUnit: autoConvertedUnit,
+                convertedDimension: resultDim,
+                isConversionMode: !!autoConvertedUnit,
+                preferredUnit: autoConvertedUnit || state.preferredUnit
             };
         }
 
