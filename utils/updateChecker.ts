@@ -64,45 +64,67 @@ export const downloadUpdate = async (
     const fileName = apkAsset.name;
     const path = `updates/${fileName}`;
 
-    // We use fetch since Capacitor Http plugin is optional and fetch works fine for blobs
-    // BUT fetch doesn't give progress. For progress, we need XMLHTTPRequest or a stream reader.
-    // We'll use a simple stream reader approach for progress.
+    console.log(`Starting download from: ${downloadUrl}`);
 
-    const response = await fetch(downloadUrl);
-    if (!response.body) throw new Error("Download failed: No body");
+    try {
+        // GitHub uses redirects for binary downloads, fetch follows by default
+        const response = await fetch(downloadUrl, {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+                'Accept': 'application/octet-stream'
+            }
+        });
 
-    const contentLength = response.headers.get('Content-Length');
-    const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-    let loaded = 0;
-    const reader = response.body.getReader();
-    const chunks = [];
-
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        chunks.push(value);
-        loaded += value.length;
-
-        if (total > 0) {
-            onProgress(Math.min((loaded / total) * 100, 100)); // Cap at 100
+        if (!response.ok) {
+            console.error(`Download HTTP Error: ${response.status} ${response.statusText}`);
+            throw new Error(`Download failed: HTTP ${response.status}`);
         }
+
+        if (!response.body) throw new Error("Download failed: No body");
+
+        const contentLength = response.headers.get('Content-Length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+        console.log(`Download size: ${total} bytes`);
+
+        let loaded = 0;
+        const reader = response.body.getReader();
+        const chunks: BlobPart[] = [];
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            loaded += value.length;
+
+            if (total > 0) {
+                onProgress(Math.min((loaded / total) * 100, 100)); // Cap at 100
+            }
+        }
+
+        console.log(`Download complete: ${loaded} bytes received`);
+
+        // Combine chunks
+        const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
+        const base64 = await blobToBase64(blob);
+
+        console.log(`Saving file to: ${path}`);
+
+        // Save to filesystem (Cache directory is best for temporary updates)
+        const savedFile = await Filesystem.writeFile({
+            path: path,
+            data: base64,
+            directory: Directory.Cache,
+            recursive: true
+        });
+
+        console.log(`File saved: ${savedFile.uri}`);
+        return savedFile.uri;
+    } catch (error) {
+        console.error("Download Error:", error);
+        throw error;
     }
-
-    // Combine chunks
-    const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
-    const base64 = await blobToBase64(blob);
-
-    // Save to filesystem (Cache directory is best for temporary updates)
-    const savedFile = await Filesystem.writeFile({
-        path: path,
-        data: base64,
-        directory: Directory.Cache,
-        recursive: true
-    });
-
-    return savedFile.uri;
 };
 
 export const installAPK = async (fileUri: string) => {
