@@ -157,6 +157,13 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
 
             if (newBuilder.numerator !== null && newBuilder.denominator === null && state.inputBuffer !== '') {
                 newBuilder.denominator = val;
+
+                // CRITICAL FIX: If we just completed a fraction (e.g. 1/4) and unit is INCH,
+                // but we have no whole inches set, explicitly set inch to 0.
+                // This ensures isBuilderUnitless returns FALSE, so the result is treated as a dimensioned value.
+                if (unit === 'inch' && newBuilder.inch === null && newBuilder.feet === null && newBuilder.yard === null) {
+                    newBuilder.inch = 0;
+                }
             } else {
                 if (unit === 'feet') newBuilder.feet = val;
                 else if (unit === 'inch') newBuilder.inch = val;
@@ -174,10 +181,19 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
 
         case CalculatorActionType.FRACTION: {
             const val = parseInt(state.inputBuffer || '0');
+
+            // If starting a fraction and no units are defined, default to INCH (User preference)
+            let newPreferredUnit = state.preferredUnit;
+            const hasUnits = state.builder.feet !== null || state.builder.inch !== null || state.builder.yard !== null;
+            if (!hasUnits && state.preferredUnit === 'feet') {
+                newPreferredUnit = 'inch';
+            }
+
             return {
                 ...resetConversion(state),
                 builder: { ...state.builder, numerator: val },
                 inputBuffer: '',
+                preferredUnit: newPreferredUnit
             };
         }
 
