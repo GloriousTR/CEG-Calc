@@ -257,6 +257,11 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
                 // we must preserve the dimension of that result (activeDimension), 
                 // NOT the builder dimension (which is reset to 1).
                 const currentDim = hasNewInput ? state.builder.dimension : state.activeDimension;
+
+                // CRITICAL FIX: Also preserve isUnitless from previous result when no new input
+                // Otherwise, pressing × after 4 INCH 1/2 result would incorrectly show 0.375 (unitless)
+                const effectiveIsUnitless = hasNewInput ? currentInputUnitless : state.isUnitless;
+
                 return {
                     ...resetConversion(state),
                     previousValue: inputValue,
@@ -266,7 +271,7 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
                     inputBuffer: '',
                     displayValue: inputValue,
                     activeDimension: currentDim,
-                    isUnitless: currentInputUnitless
+                    isUnitless: effectiveIsUnitless
                 };
             } else if (state.operator) {
                 const result = performCalculation(state.operator, state.previousValue, inputValue);
