@@ -162,15 +162,11 @@ export default function App() {
 
         {/* --- LEFT SECTION (Display) --- */}
         <div className="flex-[4] md:flex-[4.5] flex flex-col p-6 pt-8 md:p-8 z-10 relative bg-white dark:bg-[#1C2024] transition-colors duration-300">
-          {/* Header: Title + Settings Button */}
+          {/* Header: Title */}
           <div className="flex justify-between items-center mb-1 md:mb-6 shrink-0">
-            <button
-              onClick={() => setShowSettings(true)}
-              className="text-xl font-bold text-gray-400 dark:text-gray-500 tracking-wide hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-2"
-            >
-              <span>CEG Calc</span>
-              <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </button>
+            <div className="text-xl font-bold text-gray-400 dark:text-gray-500 tracking-wide">
+              CEG Calc
+            </div>
           </div>
 
           {/* Display Component */}
@@ -190,7 +186,7 @@ export default function App() {
               <CalculatorButton label="Inch" type={ButtonType.Primary} onClick={() => handleUnit('inch')} />
 
               <CalculatorButton label="Clear" type={ButtonType.Primary} onClick={handleClear} />
-              <CalculatorButton label={`MEM`} type={ButtonType.Memory} cols={2} onClick={() => { }} />
+              <CalculatorButton label="CEG" type={ButtonType.Memory} cols={2} onClick={() => setShowSettings(true)} />
               <CalculatorButton label="/" type={ButtonType.Primary} onClick={handleFractionSlash} className="font-mono text-xl" />
 
               <CalculatorButton label="÷" type={ButtonType.Secondary} onClick={() => handleOperator(Operator.Divide)} className="text-2xl" />
