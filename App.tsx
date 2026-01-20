@@ -32,6 +32,18 @@ export default function App() {
 
   const handleUpdateConfirm = async () => {
     if (!updateRelease) return;
+
+    // Find APK asset
+    const apkAsset = updateRelease.assets.find(a => a.name.endsWith('.apk'));
+
+    if (!apkAsset) {
+      // No APK found, open release page in browser
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url: updateRelease.html_url });
+      setShowUpdateModal(false);
+      return;
+    }
+
     setIsDownloading(true);
     try {
       const filePath = await downloadUpdate(updateRelease, (progress) => {
@@ -40,9 +52,18 @@ export default function App() {
       setIsDownloading(false);
       await installAPK(filePath);
     } catch (error) {
-      console.error("Update failed", error);
+      console.error("In-app download failed, opening browser:", error);
       setIsDownloading(false);
-      alert("İndirme başarısız oldu. Lütfen internet bağlantınızı kontrol edin.");
+
+      // Fallback: Open APK download link in system browser
+      try {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url: apkAsset.browser_download_url });
+        setShowUpdateModal(false);
+      } catch (browserError) {
+        console.error("Browser open also failed:", browserError);
+        alert("İndirme başarısız oldu. Lütfen GitHub'dan manuel olarak indirin.");
+      }
     }
   };
 
