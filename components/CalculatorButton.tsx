@@ -51,14 +51,15 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
       typeClasses = "bg-white dark:bg-surface hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-mono";
       break;
     case ButtonType.Memory:
-      // Dark blue background for CEG logo as base
-      typeClasses = "bg-[#0b2f7a] dark:bg-[#0b2f7a] border border-transparent dark:border-gray-800 pointer-events-none overflow-hidden relative";
+      // Dark blue background for CEG logo - NOW CLICKABLE for settings
+      typeClasses = "bg-[#0b2f7a] dark:bg-[#0b2f7a] border border-transparent dark:border-gray-800 overflow-hidden relative cursor-pointer";
       break;
   }
 
   if (type === ButtonType.Memory) {
     return (
-      <div
+      <button
+        onClick={handleClick}
         className={`col-span-${cols} ${baseClasses} ${typeClasses} ${className}`}
         style={{ gridColumn: cols > 1 ? `span ${cols} / span ${cols}` : undefined }}
       >
@@ -67,9 +68,9 @@ const CalculatorButton: React.FC<CalculatorButtonProps> = ({
           alt="CEG"
           crossOrigin="anonymous"
           loading="eager"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
         />
-      </div>
+      </button>
     )
   }
 
