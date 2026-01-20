@@ -2,6 +2,8 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -16,35 +18,38 @@ jobs:
         id: version
         shell: bash
         run: |
-          # Default to 2.0
+          # Check if this is a tag push
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            # Use the tag version directly (remove 'refs/tags/v' prefix)
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            echo "Using tag version: $TAG_VERSION"
+            echo "VERSION=$TAG_VERSION" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Auto-calculate version for branch pushes
           NEXT_VERSION="2.0"
 
           # Fetch all tags
           git fetch --tags --force
 
-          # Find the latest tag that looks like v2.something (integers only, no sub-minor)
-          # We use grep to filter strictly v2.0, v2.1, etc. ensuring we ignore v2.0.48
-          LATEST_TAG=$(git tag -l "v2.*" | grep -E "^v2\.[0-9]+$" | sort -V | tail -n 1)
+          # Find the latest tag (supports v2.x and v3.x formats)
+          LATEST_TAG=$(git tag -l "v*" | grep -E "^v[0-9]+\.[0-9]+$" | sort -V | tail -n 1)
 
           echo "Found Latest Tag: $LATEST_TAG"
 
           if [ -z "$LATEST_TAG" ]; then
-             echo "No existing v2 tags found. Starting at 2.0"
+             echo "No existing tags found. Starting at 2.0"
              NEXT_VERSION="2.0"
           else
-             # Extract the minor number. e.g. v2.15 -> 15
-             # Remove 'v2.' prefix
-             CURRENT_MINOR=${LATEST_TAG#v2.}
-
-             # Check if CURRENT_MINOR is a number
-             if [[ "$CURRENT_MINOR" =~ ^[0-9]+$ ]]; then
-                 NEXT_MINOR=$((CURRENT_MINOR + 1))
-                 NEXT_VERSION="2.$NEXT_MINOR"
-             else
-                 # Fallback if tag format is weird
-                 echo "Warning: Could not parse minor version from $LATEST_TAG. Defaulting to 2.0 (dangerous collision potential)"
-                 NEXT_VERSION="2.0"
-             fi
+             # Extract major and minor. e.g. v3.0 -> 3 and 0
+             VERSION_NUM=${LATEST_TAG#v}
+             MAJOR=$(echo $VERSION_NUM | cut -d. -f1)
+             MINOR=$(echo $VERSION_NUM | cut -d. -f2)
+             
+             # Increment minor version
+             NEXT_MINOR=$((MINOR + 1))
+             NEXT_VERSION="$MAJOR.$NEXT_MINOR"
           fi
 
           echo "Calculated Version: $NEXT_VERSION"
