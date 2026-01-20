@@ -183,15 +183,22 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
             const val = parseInt(state.inputBuffer || '0');
 
             // If starting a fraction and no units are defined, default to INCH (User preference)
+            // CRITICAL: Also set builder.inch = 0 to mark this as a DIMENSIONED value
+            // This ensures that 1/2 is treated as "0 INCH 1/2" (0.0416 feet) not as pure decimal 0.5
             let newPreferredUnit = state.preferredUnit;
+            let newBuilder = { ...state.builder, numerator: val };
+
             const hasUnits = state.builder.feet !== null || state.builder.inch !== null || state.builder.yard !== null;
             if (!hasUnits && state.preferredUnit === 'feet') {
                 newPreferredUnit = 'inch';
+                // Set inch = 0 so isBuilderUnitless returns FALSE
+                // This is the key fix - fractions default to INCH dimension
+                newBuilder.inch = 0;
             }
 
             return {
                 ...resetConversion(state),
-                builder: { ...state.builder, numerator: val },
+                builder: newBuilder,
                 inputBuffer: '',
                 preferredUnit: newPreferredUnit
             };
