@@ -302,11 +302,18 @@ export const calculatorReducer = (state: CalculatorState, action: CalculatorActi
             const currentInputDim = hasNewInput ? state.builder.dimension : state.activeDimension;
 
             if (!state.isUnitless && currentInputUnitless && hasNewInput) {
-                const power = state.activeDimension === 1 ? 1 : (state.activeDimension === 2 ? 2 : 3);
-                if (state.preferredUnit === 'inch') {
-                    currentValue = currentValue / Math.pow(12, power);
-                } else if (state.preferredUnit === 'yard') {
-                    currentValue = currentValue * Math.pow(3, power);
+                // IMPLICIT UNIT CONVERSION
+                // Only converting "2" -> "2 inches" for Add/Subtract.
+                // For Multiply/Divide, "2" must remain a SCALAR.
+                const isScalarOp = state.operator === Operator.Multiply || state.operator === Operator.Divide;
+
+                if (!isScalarOp) {
+                    const power = state.activeDimension === 1 ? 1 : (state.activeDimension === 2 ? 2 : 3);
+                    if (state.preferredUnit === 'inch') {
+                        currentValue = currentValue / Math.pow(12, power);
+                    } else if (state.preferredUnit === 'yard') {
+                        currentValue = currentValue * Math.pow(3, power);
+                    }
                 }
             }
 
